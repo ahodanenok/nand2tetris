@@ -11,5 +11,15 @@ CHIP Mux {
     OUT out;
 
     PARTS:
-    //// Replace this comment with your code.
+    // Non-optimized
+    //Not(in=sel, out=notsel);
+    //And(a=a, b=notsel, out=x);
+    //And(a=b, b=sel, out=y);
+    //Or(a=x, b=y, out=out);
+
+    // Optimized
+    Nand(a=sel, b=sel, out=notsel);
+    Nand(a=a, b=notsel, out=x);
+    Nand(a=b, b=sel, out=y);
+    Nand(a=x, b=y, out=out);
 }
