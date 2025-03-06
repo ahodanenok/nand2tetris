@@ -13,5 +13,66 @@ CHIP RAM16K {
     OUT out[16];
 
     PARTS:
-    //// Replace this comment with your code.
+    DMux4Way(
+        in=load, sel[0]=address[12], sel[1]=address[13],
+        a=ld0, b=ld1, c=ld2, d=ld3);
+    RAM4K(
+        in=in, load=ld0, out=d0,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5],
+        address[6]=address[6],
+        address[7]=address[7],
+        address[8]=address[8],
+        address[9]=address[9],
+        address[10]=address[10],
+        address[11]=address[11]);
+    RAM4K(
+        in=in, load=ld1, out=d1,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5],
+        address[6]=address[6],
+        address[7]=address[7],
+        address[8]=address[8],
+        address[9]=address[9],
+        address[10]=address[10],
+        address[11]=address[11]);
+    RAM4K(
+        in=in, load=ld2, out=d2,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5],
+        address[6]=address[6],
+        address[7]=address[7],
+        address[8]=address[8],
+        address[9]=address[9],
+        address[10]=address[10],
+        address[11]=address[11]);
+    RAM4K(
+        in=in, load=ld3, out=d3,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5],
+        address[6]=address[6],
+        address[7]=address[7],
+        address[8]=address[8],
+        address[9]=address[9],
+        address[10]=address[10],
+        address[11]=address[11]);
+    Mux4Way16(
+        a=d0, b=d1, c=d2, d=d3, out=out,
+        sel[0]=address[12], sel[1]=address[13]);
 }
