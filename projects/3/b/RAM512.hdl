@@ -13,5 +13,75 @@ CHIP RAM512 {
     OUT out[16];
 
     PARTS:
-    //// Replace this comment with your code.
+    DMux8Way(
+        in=load, sel[0]=address[6], sel[1]=address[7], sel[2]=address[8],
+        a=ld0, b=ld1, c=ld2, d=ld3, e=ld4, f=ld5, g=ld6, h=ld7);
+    RAM64(
+        in=in, load=ld0, out=d0,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    RAM64(
+        in=in, load=ld1, out=d1,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    RAM64(
+        in=in, load=ld2, out=d2,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    RAM64(
+        in=in, load=ld3, out=d3,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    RAM64(
+        in=in, load=ld4, out=d4,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    RAM64(
+        in=in, load=ld5, out=d5,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    RAM64(
+        in=in, load=ld6, out=d6,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    RAM64(
+        in=in, load=ld7, out=d7,
+        address[0]=address[0],
+        address[1]=address[1],
+        address[2]=address[2],
+        address[3]=address[3],
+        address[4]=address[4],
+        address[5]=address[5]);
+    Mux8Way16(
+        a=d0, b=d1, c=d2, d=d3, e=d4, f=d5, g=d6, h=d7,
+        sel[0]=address[6], sel[1]=address[7], sel[2]=address[8],
+        out=out);
 }
