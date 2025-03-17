@@ -32,5 +32,50 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-	//// Replace this comment with your code.
+        Mux16(
+            a[0]=instruction[0],
+            a[1]=instruction[1],
+            a[2]=instruction[2],
+            a[3]=instruction[3],
+            a[4]=instruction[4],
+            a[5]=instruction[5],
+            a[6]=instruction[6],
+            a[7]=instruction[7],
+            a[8]=instruction[8],
+            a[9]=instruction[9],
+            a[10]=instruction[10],
+            a[11]=instruction[11],
+            a[12]=instruction[12],
+            a[13]=instruction[13],
+            a[14]=instruction[14],
+            a[15]=instruction[15],
+            b=aluOut,
+            sel=instruction[15],
+            out=inA);
+        Not(in=instruction[15], out=aInst);
+        Or(a=aInst, b=instruction[5], out=ldA);
+        ARegister(in=inA, load=ldA, out=aOut, out[0..14]=addressM);
+        DRegister(in=aluOut, load=instruction[4], out=dOut);
+        PC(in=aOut, load=jmp, inc=notjmp, reset=reset, out[0..14]=pc);
+        Mux16(a=aOut, b=inM, sel=instruction[12], out=yIn);
+        ALU(
+            x=dOut, y=yIn, out=aluOut, out=outM,
+            zr=zero, ng=neg,
+            zx=instruction[11],
+            nx=instruction[10],
+            zy=instruction[9],
+            ny=instruction[8],
+            f=instruction[7],
+            no=instruction[6]);
+        Not(in=neg, out=notneg);
+        Not(in=zero, out=notzero);
+        And(a=notneg, b=notzero, out=pos);
+        And(a=neg, b=instruction[2], out=jmpneg);
+        And(a=zero, b=instruction[1], out=jmpzero);
+        And(a=pos, b=instruction[0], out=jmppos);
+        Or(a=jmpneg, b=jmpzero, out=jmp0);
+        Or(a=jmp0, b=jmppos, out=jmp1);
+        And(a=jmp1, b=instruction[15], out=jmp);
+        Not(in=jmp, out=notjmp);
+        And(a=instruction[15], b=instruction[3], out=writeM);
 }
