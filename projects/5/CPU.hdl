@@ -55,7 +55,8 @@ CHIP CPU {
         Not(in=instruction[15], out=aInst);
         Or(a=aInst, b=instruction[5], out=ldA);
         ARegister(in=inA, load=ldA, out=aOut, out[0..14]=addressM);
-        DRegister(in=aluOut, load=instruction[4], out=dOut);
+        And(a=instruction[4], b=instruction[15], out=ldD);
+        DRegister(in=aluOut, load=ldD, out=dOut);
         PC(in=aOut, load=jmp, inc=notjmp, reset=reset, out[0..14]=pc);
         Mux16(a=aOut, b=inM, sel=instruction[12], out=yIn);
         ALU(
