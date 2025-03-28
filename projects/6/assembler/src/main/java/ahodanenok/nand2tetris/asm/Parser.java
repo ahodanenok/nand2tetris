@@ -60,12 +60,12 @@ public class Parser {
             char ch = peekChar();
             if (ch == ' ') {
                 readChar();
-            } else if (ch == '\n') {
+            } else if (isEOL(ch)) {
                 readChar();
             } else if (ch == '/') {
                 readChar(); // /
                 readChar(); // /
-                while (hasMoreChars() && peekChar() != '\n') {
+                while (hasMoreChars() && !isEOL(peekChar())) {
                     readChar();
                 }
             } else if (ch == '@') {
@@ -114,11 +114,11 @@ public class Parser {
         String s = "";
         while (hasMoreChars()) {
             ch = readChar();
-            if (ch == '\n') {
+            if (ch == ' ') {
+                break;
+            } else if (isEOL(ch)) {
                 break;
             } else if (ch == '/') {
-                break;
-            } else if (ch == ' ') {
                 break;
             } else if (ch == '=') {
                 dest = s;
@@ -145,6 +145,10 @@ public class Parser {
         }
 
         symbol = s;
+    }
+
+    private boolean isEOL(char ch) {
+        return ch == '\n' || ch == '\r';
     }
 
     private boolean isDigit(char ch) {
