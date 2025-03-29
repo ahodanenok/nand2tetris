@@ -100,7 +100,7 @@ public class ParserTest {
     @CsvSource(textBlock = """
         M=-1,     M,   -1
         D=D|A,    D,   D|A
-        DM=A+1,   DM,  A+1
+        MD=A+1,   MD,  A+1
         A=D+M,    A,   D+M
         AM=D-1,   AM,  D-1
         AD=!A,    AD,  !A
@@ -126,7 +126,7 @@ public class ParserTest {
         D=A;JLT,       D,   A,   JLT
         M=D+1;JNE,     M,   D+1, JNE
         ADM=D&M;JLE,   ADM, D&M, JLE
-        DM=A-1;JMP,    DM,  A-1, JMP
+        MD=A-1;JMP,    MD,  A-1, JMP
     """)
     public void testParseInstruction_C_DestCompJump(String code, String dest, String comp, String jump) {
         Parser parser = new Parser(code);

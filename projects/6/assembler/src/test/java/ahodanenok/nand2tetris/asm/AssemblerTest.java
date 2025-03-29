@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.StringWriter;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -23,12 +24,82 @@ public class AssemblerTest {
         assertEquals(result, out.toString());
     }
 
-    public void testAssembleInstruction_A_Label(String code, String result) throws Exception {
-        // todo
+    @ParameterizedTest
+    @CsvSource(textBlock = """
+        @R0,      0000000000000000
+        @R1,      0000000000000001
+        @R2,      0000000000000010
+        @R3,      0000000000000011
+        @R4,      0000000000000100
+        @R5,      0000000000000101
+        @R6,      0000000000000110
+        @R7,      0000000000000111
+        @R8,      0000000000001000
+        @R9,      0000000000001001
+        @R10,     0000000000001010
+        @R11,     0000000000001011
+        @R12,     0000000000001100
+        @R13,     0000000000001101
+        @R14,     0000000000001110
+        @R15,     0000000000001111
+        @SP,      0000000000000000
+        @LCL,     0000000000000001
+        @ARG,     0000000000000010
+        @THIS,    0000000000000011
+        @THAT,    0000000000000100
+        @SCREEN,  0100000000000000
+        @KBD,     0110000000000000
+    """)
+    public void testAssembleInstruction_A_PredefinedLabels(String code, String result) throws Exception {
+        Assembler assembler = new Assembler();
+        StringWriter out = new StringWriter();
+        assembler.translate(code, out);
+        assertEquals(result, out.toString());
     }
 
-    public void testAssembleInstruction_L(String code, String result) throws Exception {
-        // todo
+    @Test
+    public void testAssembleInstruction_A_Variables() throws Exception {
+        String code = """
+            @x
+            @y
+            @z
+            @foo
+            @data.num
+            @foo
+            @x
+        """;
+
+        Assembler assembler = new Assembler();
+        StringWriter out = new StringWriter();
+        assembler.resolve(code);
+        assembler.translate(code, out);
+        assertEquals("""
+            0000000000010000
+            0000000000010001
+            0000000000010010
+            0000000000010011
+            0000000000010100
+            0000000000010011
+            0000000000010000""", out.toString());
+    }
+
+    @Test
+    public void testAssembleInstruction_L() throws Exception {
+        String code = """
+            (LOOP)
+            @io
+            // comment
+            (io)
+            @LOOP
+        """;
+
+        Assembler assembler = new Assembler();
+        StringWriter out = new StringWriter();
+        assembler.resolve(code);
+        assembler.translate(code, out);
+        assertEquals("""
+            0000000000000001
+            0000000000000000""", out.toString());
     }
 
     @ParameterizedTest
@@ -63,7 +134,7 @@ public class AssemblerTest {
         D|M,        1111010101000000
         M=D&A,      1110000000001000
         D=D&A,      1110000000010000
-        DM=D&A,     1110000000011000
+        MD=D&A,     1110000000011000
         A=D&A,      1110000000100000
         AM=D&A,     1110000000101000
         AD=D&A,     1110000000110000
