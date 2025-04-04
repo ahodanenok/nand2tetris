@@ -206,4 +206,37 @@ public class VmParserTest {
         assertNull(parser.segment());
         assertEquals(-1, parser.index());
     }
+
+    @Test
+    public void testParseChunk_2() {
+        VmParser parser = new VmParser("""
+
+            // Pushes and adds two constants.
+
+            push constant 7
+            push constant 8
+            add
+
+        """);
+
+        assertTrue(parser.advance());
+        assertEquals(VmCommand.PUSH, parser.command());
+        assertEquals(VmSegment.CONSTANT, parser.segment());
+        assertEquals(7, parser.index());
+
+        assertTrue(parser.advance());
+        assertEquals(VmCommand.PUSH, parser.command());
+        assertEquals(VmSegment.CONSTANT, parser.segment());
+        assertEquals(8, parser.index());
+
+        assertTrue(parser.advance());
+        assertEquals(VmCommand.ADD, parser.command());
+        assertNull(parser.segment());
+        assertEquals(-1, parser.index());
+
+        assertFalse(parser.advance());
+        assertNull(parser.command());
+        assertNull(parser.segment());
+        assertEquals(-1, parser.index());
+    }
 }

@@ -44,8 +44,8 @@ public class VmParser {
 
             String token = readToken();
             if (token.isEmpty()) {
-                break;
-            } else if (token.equals("//")) {
+                continue;
+            } else if (token.startsWith("//")) {
                 while (hasMoreChars() && !isNewLine(peekChar())) {
                     readChar();
                 }
@@ -94,14 +94,35 @@ public class VmParser {
         return false;
     }
 
-    private String readToken() {
-        while (hasMoreChars() && isWhitespace(peekChar())) {
-            readChar();
-        }
+    // private String readToken() {
+    //     while (hasMoreChars() && isWhitespace(peekChar())) {
+    //         readChar();
+    //     }
 
+    //     String token = "";
+    //     while (hasMoreChars() && isAlphanum(peekChar())) {
+    //         token += readChar();
+    //     }
+
+    //     return token;
+    // }
+
+    private String readToken() {
         String token = "";
-        while (hasMoreChars() && isAlphanum(peekChar())) {
-            token += readChar();
+        while (hasMoreChars()) {
+            char ch = peekChar();
+            if (isWhitespace(ch)) {
+                readChar();
+                if (!token.isEmpty()) {
+                    break;
+                }
+            } else if (isNewLine(ch)) {
+                break;
+            } else if (isAlphanum(ch)) {
+                token += readChar();
+            } else {
+                throw new IllegalStateException(String.format("Unknown symbol: '%s'", ch));
+            }
         }
 
         return token;
@@ -135,7 +156,8 @@ public class VmParser {
 
     private boolean isAlphanum(char ch) {
         return ch >= 'a' && ch <= 'z'
-            || ch >= '0' && ch <= '9';
+            || ch >= '0' && ch <= '9'
+            || ch == '/';
     }
 
     private boolean isWhitespace(char ch) {
