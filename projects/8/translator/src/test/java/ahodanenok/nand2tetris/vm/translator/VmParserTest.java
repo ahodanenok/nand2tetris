@@ -14,10 +14,7 @@ public class VmParserTest {
     @Test
     public void testParse_Empty() {
         VmParser parser = new VmParser("");
-        assertFalse(parser.advance());
-        assertNull(parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
+        checkNoMoreCommands(parser);
     }
 
     @ParameterizedTest
@@ -32,11 +29,8 @@ public class VmParserTest {
     """)
     public void testParseCommand_Push(String code, VmSegment segment, int index) {
         VmParser parser = new VmParser(code);
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.PUSH, parser.command());
-        assertEquals(segment, parser.segment());
-        assertEquals(index, parser.index());
-        assertFalse(parser.advance());
+        checkPushPop(parser, VmCommand.PUSH, segment, index);
+        checkNoMoreCommands(parser);
     }
 
     @ParameterizedTest
@@ -51,101 +45,92 @@ public class VmParserTest {
     """)
     public void testParseCommand_Pop(String code, VmSegment segment, int index) {
         VmParser parser = new VmParser(code);
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.POP, parser.command());
-        assertEquals(segment, parser.segment());
-        assertEquals(index, parser.index());
-        assertFalse(parser.advance());
+        checkPushPop(parser, VmCommand.POP, segment, index);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Add() {
         VmParser parser = new VmParser("add");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.ADD, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.ADD);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Sub() {
         VmParser parser = new VmParser("sub");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.SUB, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.SUB);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Neg() {
         VmParser parser = new VmParser("neg");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.NEG, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.NEG);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Eq() {
         VmParser parser = new VmParser("eq");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.EQ, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.EQ);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Gt() {
         VmParser parser = new VmParser("gt");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.GT, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.GT);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Lt() {
         VmParser parser = new VmParser("lt");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.LT, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.LT);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_And() {
         VmParser parser = new VmParser("and");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.AND, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.AND);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Or() {
         VmParser parser = new VmParser("or");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.OR, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.OR);
+        checkNoMoreCommands(parser);
     }
 
     @Test
     public void testParseCommand_Not() {
         VmParser parser = new VmParser("not");
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.NOT, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-        assertFalse(parser.advance());
+        checkCommand(parser, VmCommand.NOT);
+        checkNoMoreCommands(parser);
+    }
+
+    @Test
+    public void testParseCommand_Label() {
+        VmParser parser = new VmParser("label TEST");
+        checkLabel(parser, VmCommand.LABEL, "TEST");
+        checkNoMoreCommands(parser);
+    }
+
+    @Test
+    public void testParseCommand_Goto() {
+        VmParser parser = new VmParser("goto THERE");
+        checkLabel(parser, VmCommand.GOTO, "THERE");
+        checkNoMoreCommands(parser);
+    }
+
+    @Test
+    public void testParseCommand_IfGoto() {
+        VmParser parser = new VmParser("if-goto OK");
+        checkLabel(parser, VmCommand.IF_GOTO, "OK");
+        checkNoMoreCommands(parser);
     }
 
     @Test
@@ -161,50 +146,15 @@ public class VmParserTest {
             pop that 3
         """);
 
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.PUSH, parser.command());
-        assertEquals(VmSegment.STATIC, parser.segment());
-        assertEquals(100, parser.index());
-
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.PUSH, parser.command());
-        assertEquals(VmSegment.LOCAL, parser.segment());
-        assertEquals(1, parser.index());
-
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.NEG, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.PUSH, parser.command());
-        assertEquals(VmSegment.ARGUMENT, parser.segment());
-        assertEquals(4, parser.index());
-
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.ADD, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.PUSH, parser.command());
-        assertEquals(VmSegment.THIS, parser.segment());
-        assertEquals(0, parser.index());
-
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.LT, parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
-
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.POP, parser.command());
-        assertEquals(VmSegment.THAT, parser.segment());
-        assertEquals(3, parser.index());
-
-        assertFalse(parser.advance());
-        assertNull(parser.command());
-        assertNull(parser.segment());
-        assertEquals(-1, parser.index());
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.STATIC, 100);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.LOCAL, 1);
+        checkCommand(parser, VmCommand.NEG);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.ARGUMENT, 4);
+        checkCommand(parser, VmCommand.ADD);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.THIS, 0);
+        checkCommand(parser, VmCommand.LT);
+        checkPushPop(parser, VmCommand.POP, VmSegment.THAT, 3);
+        checkNoMoreCommands(parser);
     }
 
     @Test
@@ -219,24 +169,83 @@ public class VmParserTest {
 
         """);
 
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.PUSH, parser.command());
-        assertEquals(VmSegment.CONSTANT, parser.segment());
-        assertEquals(7, parser.index());
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.CONSTANT, 7);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.CONSTANT, 8);
+        checkCommand(parser, VmCommand.ADD);
+        checkNoMoreCommands(parser);
+    }
 
-        assertTrue(parser.advance());
-        assertEquals(VmCommand.PUSH, parser.command());
-        assertEquals(VmSegment.CONSTANT, parser.segment());
-        assertEquals(8, parser.index());
+    @Test
+    public void testParseChunk_3() {
+        VmParser parser = new VmParser("""
 
+            	push constant 0
+                pop local 0         // sum = 0
+            label LOOP
+                push argument 0
+                push local 0
+                add
+                pop local 0	        // sum = sum + n
+                push argument 0
+                push constant 1
+                sub
+                pop argument 0      // n--
+                push argument 0
+                if-goto LOOP        // if n > 0, goto LOOP
+                push local 0        // else, pushes sum to the stack's top
+
+        """);
+
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.CONSTANT, 0);
+        checkPushPop(parser, VmCommand.POP, VmSegment.LOCAL, 0);
+        checkLabel(parser, VmCommand.LABEL, "LOOP");
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.ARGUMENT, 0);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.LOCAL, 0);
+        checkCommand(parser, VmCommand.ADD);
+        checkPushPop(parser, VmCommand.POP, VmSegment.LOCAL, 0);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.ARGUMENT, 0);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.CONSTANT, 1);
+        checkCommand(parser, VmCommand.SUB);
+        checkPushPop(parser, VmCommand.POP, VmSegment.ARGUMENT, 0);
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.ARGUMENT, 0);
+        checkLabel(parser, VmCommand.IF_GOTO, "LOOP");
+        checkPushPop(parser, VmCommand.PUSH, VmSegment.LOCAL, 0);
+        checkNoMoreCommands(parser);
+    }
+
+    private void checkLabel(VmParser parser, VmCommand command, String label) {
         assertTrue(parser.advance());
-        assertEquals(VmCommand.ADD, parser.command());
+        assertEquals(command, parser.command());
+        assertEquals(label, parser.label());
         assertNull(parser.segment());
         assertEquals(-1, parser.index());
+    }
 
+    private void checkCommand(VmParser parser, VmCommand command) {
+        assertTrue(parser.advance());
+        assertEquals(command, parser.command());
+        assertNull(parser.label());
+        assertNull(parser.segment());
+        assertEquals(-1, parser.index());
+    }
+
+    private void checkPushPop(VmParser parser, VmCommand command, VmSegment segment, int index) {
+        assertTrue(parser.advance());
+        assertEquals(command, parser.command());
+        if (segment != null) {
+            assertEquals(segment, parser.segment());
+        } else {
+            assertNull(parser.segment());
+        }
+        assertEquals(index, parser.index());
+        assertNull(parser.label());
+    }
+
+    private void checkNoMoreCommands(VmParser parser) {
         assertFalse(parser.advance());
         assertNull(parser.command());
         assertNull(parser.segment());
         assertEquals(-1, parser.index());
+        assertNull(parser.label());
     }
 }

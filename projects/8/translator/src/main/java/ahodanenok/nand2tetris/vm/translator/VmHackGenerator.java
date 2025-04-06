@@ -5,7 +5,31 @@ import java.io.Writer;
 
 public class VmHackGenerator {
 
+    private String function = "Main.main";
     private int nextLabelIdx = 0;
+
+    public void init(Writer out) throws IOException {
+        out.write(at("256"));
+        out.write("D=A\n");
+        out.write(at("SP"));
+        out.write("M=D\n");
+        //call("Sys.init");
+    }
+
+    public void label(String name, Writer out) throws IOException {
+        out.write(label(labelName(name)));
+    }
+
+    public void uGoto(String label, Writer out) throws IOException {
+        out.write(at(labelName(label)));
+        out.write("0;JMP\n");
+    }
+
+    public void ifGoto(String label, Writer out) throws IOException {
+        popD(out);
+        out.write(at(labelName(label)));
+        out.write("D;JNE\n");
+    }
 
     public void push(VmSegment segment, int index, Writer out) throws IOException {
         switch (segment) {
@@ -181,9 +205,9 @@ public class VmHackGenerator {
     }
 
     public void eq(Writer out) throws IOException {
-        String yes = newLabelName();
-        String no = newLabelName();
-        String end = newLabelName();
+        String yes = labelName();
+        String no = labelName();
+        String end = labelName();
 
         out.write(at("SP"));
         out.write("M=M-1\n");
@@ -210,9 +234,9 @@ public class VmHackGenerator {
     }
 
     public void gt(Writer out) throws IOException {
-        String yes = newLabelName();
-        String no = newLabelName();
-        String end = newLabelName();
+        String yes = labelName();
+        String no = labelName();
+        String end = labelName();
 
         out.write(at("SP"));
         out.write("M=M-1\n");
@@ -239,9 +263,9 @@ public class VmHackGenerator {
     }
 
     public void lt(Writer out) throws IOException {
-        String yes = newLabelName();
-        String no = newLabelName();
-        String end = newLabelName();
+        String yes = labelName();
+        String no = labelName();
+        String end = labelName();
 
         out.write(at("SP"));
         out.write("M=M-1\n");
@@ -293,10 +317,14 @@ public class VmHackGenerator {
         out.write("M=!M\n");
     }
 
-    private String newLabelName() {
-        String label = "LB_" + nextLabelIdx;
+    private String labelName() {
+        String label = labelName(nextLabelIdx + "");
         nextLabelIdx++;
         return label;
+    }
+
+    private String labelName(String localName) {
+        return function + "$" + localName;
     }
 
     private String at(String address) {

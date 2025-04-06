@@ -61,21 +61,21 @@ public class VmHackGeneratorTest {
             @SP
             A=M-1
             D=M-D
-            @LB_0
+            @Main.main$0
             D;JEQ
-            @LB_1
+            @Main.main$1
             0;JMP
-            (LB_0)
+            (Main.main$0)
             @SP
             A=M-1
             M=-1
-            @LB_2
+            @Main.main$2
             0;JMP
-            (LB_1)
+            (Main.main$1)
             @SP
             A=M-1
             M=0
-            (LB_2)
+            (Main.main$2)
             """, out.toString());
     }
 
@@ -91,21 +91,21 @@ public class VmHackGeneratorTest {
             @SP
             A=M-1
             D=M-D
-            @LB_0
+            @Main.main$0
             D;JLT
-            @LB_1
+            @Main.main$1
             0;JMP
-            (LB_0)
+            (Main.main$0)
             @SP
             A=M-1
             M=-1
-            @LB_2
+            @Main.main$2
             0;JMP
-            (LB_1)
+            (Main.main$1)
             @SP
             A=M-1
             M=0
-            (LB_2)
+            (Main.main$2)
             """, out.toString());
     }
 
@@ -121,21 +121,21 @@ public class VmHackGeneratorTest {
             @SP
             A=M-1
             D=M-D
-            @LB_0
+            @Main.main$0
             D;JGT
-            @LB_1
+            @Main.main$1
             0;JMP
-            (LB_0)
+            (Main.main$0)
             @SP
             A=M-1
             M=-1
-            @LB_2
+            @Main.main$2
             0;JMP
-            (LB_1)
+            (Main.main$1)
             @SP
             A=M-1
             M=0
-            (LB_2)
+            (Main.main$2)
             """, out.toString());
     }
 

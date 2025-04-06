@@ -35,12 +35,17 @@ public class VmTranslator {
         VmTranslator translator = new VmTranslator();
         String code = new String(Files.readAllBytes(sourceFile), "UTF-8");
         try (BufferedWriter out = Files.newBufferedWriter(targetFile)) {
+            //translator.init(out);
             translator.translate(code, out);
             System.out.println("done!");
         }
     }
 
     private final VmHackGenerator hack = new VmHackGenerator();
+
+    public void init(Writer out) throws IOException {
+        hack.init(out);
+    }
 
     public void translate(String code, Writer out) throws IOException {
         VmParser parser = new VmParser(code);
@@ -57,6 +62,9 @@ public class VmTranslator {
                 case AND -> hack.and(out);
                 case OR -> hack.or(out);
                 case NOT -> hack.not(out);
+                case LABEL -> hack.label(parser.label(), out);
+                case GOTO -> hack.uGoto(parser.label(), out);
+                case IF_GOTO -> hack.ifGoto(parser.label(), out);
             }
         }
     }

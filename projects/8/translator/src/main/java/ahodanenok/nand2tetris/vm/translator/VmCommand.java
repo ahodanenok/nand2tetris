@@ -5,5 +5,6 @@ public enum VmCommand {
     PUSH, POP,
     ADD, SUB, NEG,
     EQ, GT, LT,
-    AND, OR, NOT;
+    AND, OR, NOT,
+    LABEL, IF_GOTO, GOTO;
 }
