@@ -7,7 +7,7 @@ public class VmParser {
 
     private VmCommand command;
     private VmSegment segment;
-    private int index;
+    private int number;
     private String label;
 
     public VmParser(String code) {
@@ -27,8 +27,8 @@ public class VmParser {
         return segment;
     }
 
-    public int index() {
-        return index;
+    public int number() {
+        return number;
     }
 
     public String label() {
@@ -38,67 +38,9 @@ public class VmParser {
     private void resetFields() {
         this.command = null;
         this.segment = null;
-        this.index = -1;
+        this.number = -1;
         this.label = null;
     }
-
-    // private boolean parseCommand() {
-    //     while (hasMoreChars()) {
-    //         while (hasMoreChars() && isNewLine(peekChar())) {
-    //             readChar();
-    //         }
-
-    //         String token = readToken();
-    //         if (token.isEmpty()) {
-    //             continue;
-    //         } else if (token.startsWith("//")) {
-    //             while (hasMoreChars() && !isNewLine(peekChar())) {
-    //                 readChar();
-    //             }
-    //         } else if (token.equals("push")) {
-    //             command = VmCommand.PUSH;
-    //             segment = parseSegment(readToken());
-    //             index = Integer.parseInt(readToken());
-    //         } else if (token.equals("pop")) {
-    //             command = VmCommand.POP;
-    //             segment = parseSegment(readToken());
-    //             index = Integer.parseInt(readToken());
-    //         } else if (token.equals("add")) {
-    //             command = VmCommand.ADD;
-    //         } else if (token.equals("sub")) {
-    //             command = VmCommand.SUB;
-    //         } else if (token.equals("neg")) {
-    //             command = VmCommand.NEG;
-    //         } else if (token.equals("eq")) {
-    //             command = VmCommand.EQ;
-    //         } else if (token.equals("gt")) {
-    //             command = VmCommand.GT;
-    //         } else if (token.equals("lt")) {
-    //             command = VmCommand.LT;
-    //         } else if (token.equals("and")) {
-    //             command = VmCommand.AND;
-    //         } else if (token.equals("or")) {
-    //             command = VmCommand.OR;
-    //         } else if (token.equals("not")) {
-    //             command = VmCommand.NOT;
-    //         } else {
-    //             throw new IllegalStateException(String.format("Unknown token: '%s'", token));
-    //         }
-
-    //         while (hasMoreChars() && isWhitespace(peekChar())) {
-    //             readChar();
-    //         }
-    //         if (hasMoreChars() && !isNewLine(peekChar())) {
-    //             throw new IllegalStateException("Expected new line");
-    //         }
-
-    //         if (command != null) {
-    //             return true;
-    //         }
-    //     }
-
-    //     return false;
-    // }
 
     private boolean parseCommand() {
         while (nextLine());
@@ -110,11 +52,11 @@ public class VmParser {
         if (cmdToken.equals("push")) {
             command = VmCommand.PUSH;
             segment = parseSegment(readKeyword());
-            index = parseIndex(readIndex());
+            number = parseNumber(readNumber());
         } else if (cmdToken.equals("pop")) {
             command = VmCommand.POP;
             segment = parseSegment(readKeyword());
-            index = parseIndex(readIndex());
+            number = parseNumber(readNumber());
         } else if (cmdToken.equals("add")) {
             command = VmCommand.ADD;
         } else if (cmdToken.equals("sub")) {
@@ -142,6 +84,16 @@ public class VmParser {
         } else if (cmdToken.equals("if-goto")) {
             command = VmCommand.IF_GOTO;
             label = readKeyword();
+        } else if (cmdToken.equals("function")) {
+            command = VmCommand.FUNCTION;
+            label = readKeyword();
+            number = parseNumber(readNumber());
+        } else if (cmdToken.equals("call")) {
+            command = VmCommand.CALL;
+            label = readKeyword();
+            number = parseNumber(readNumber());
+        } else if (cmdToken.equals("return")) {
+            command = VmCommand.RETURN;
         } else {
             throw new IllegalStateException(String.format(
                 "Unknown command: '%s'", cmdToken));
@@ -159,14 +111,14 @@ public class VmParser {
             readChar();
         }
 
-        String command = "";
+        String token = "";
         while (hasMoreChars()) {
             char ch = peekChar();
-            if (isDigit(ch) && command.length() > 0) {
-                command += readChar();
+            if (isDigit(ch) && token.length() > 0) {
+                token += readChar();
             } else if (isAlpha(ch)
                     || ch == '_' || ch == '.' || ch == ':' || ch == '-') {
-                command += readChar();
+                token += readChar();
             } else if (isWhitespace(ch)) {
                 break;
             } else if (isNewLine(ch)) {
@@ -176,23 +128,23 @@ public class VmParser {
             }
         }
 
-        if (command.isEmpty()) {
+        if (token.isEmpty()) {
             throw new IllegalStateException("Expected keyword");
         }
 
-        return command;
+        return token;
     }
 
-    private String readIndex() {
+    private String readNumber() {
         while (hasMoreChars() && isWhitespace(peekChar())) {
             readChar();
         }
 
-        String index = "";
+        String token = "";
         while (hasMoreChars()) {
             char ch = peekChar();
             if (isDigit(ch)) {
-                index += readChar();
+                token += readChar();
             } else if (isWhitespace(ch)) {
                 break;
             } else if (isNewLine(ch)) {
@@ -202,11 +154,11 @@ public class VmParser {
             }
         }
 
-        if (index.isEmpty()) {
-            throw new IllegalStateException("Expected index");
+        if (token.isEmpty()) {
+            throw new IllegalStateException("Expected number");
         }
 
-        return index;
+        return token;
     }
 
     private boolean nextLine() {
@@ -235,27 +187,6 @@ public class VmParser {
         }
     }
 
-    // private String readToken() {
-    //     String token = "";
-    //     while (hasMoreChars()) {
-    //         char ch = peekChar();
-    //         if (isWhitespace(ch)) {
-    //             readChar();
-    //             if (!token.isEmpty()) {
-    //                 break;
-    //             }
-    //         } else if (isNewLine(ch)) {
-    //             break;
-    //         } else if (isAlphanum(ch)) {
-    //             token += readChar();
-    //         } else {
-    //             throw new IllegalStateException(String.format("Unknown symbol: '%s'", ch));
-    //         }
-    //     }
-
-    //     return token;
-    // }
-
     private VmSegment parseSegment(String token) {
         for (VmSegment segment : VmSegment.values()) {
             if (segment.name().equalsIgnoreCase(token)) {
@@ -266,21 +197,21 @@ public class VmParser {
         throw new IllegalStateException("Unknown segment: " + token);
     }
 
-    private int parseIndex(String token) {
-        int index;
+    private int parseNumber(String token) {
+        int number;
         try {
-            index = Integer.parseInt(token);
+            number = Integer.parseInt(token);
         } catch (NumberFormatException e) {
             throw new IllegalStateException(String.format(
-                "Invalid index: '%s'", token));
+                "Invalid number: '%s'", token));
         }
 
-        if (index < 0 || index > 32767) {
+        if (number < 0 || number > 32767) {
             throw new IllegalStateException(String.format(
-                "Index out of range: '%s'", index));
+                "Number out of range: '%s'", number));
         }
 
-        return index;
+        return number;
     }
 
     private boolean hasMoreChars() {

@@ -134,6 +134,27 @@ public class VmParserTest {
     }
 
     @Test
+    public void testParseCommand_Function() {
+        VmParser parser = new VmParser("function Circle.area 1");
+        checkFunction(parser, "Circle.area", 1);
+        checkNoMoreCommands(parser);
+    }
+
+    @Test
+    public void testParseCommand_Call() {
+        VmParser parser = new VmParser("call Math.sum 2");
+        checkCall(parser, "Math.sum", 2);
+        checkNoMoreCommands(parser);
+    }
+
+    @Test
+    public void testParseCommand_Return() {
+        VmParser parser = new VmParser("return");
+        checkCommand(parser, VmCommand.RETURN);
+        checkNoMoreCommands(parser);
+    }
+
+    @Test
     public void testParseChunk_1() {
         VmParser parser = new VmParser("""
             push static 100
@@ -213,12 +234,54 @@ public class VmParserTest {
         checkNoMoreCommands(parser);
     }
 
+    //@Test
+    public void testParseChunk_4() {
+        VmParser parser = new VmParser("""
+            function Main.fibonacci 0
+                push argument 0
+                push constant 2
+                lt
+                if-goto N_LT_2
+                goto N_GE_2
+            label N_LT_2               // if n < 2 returns n
+                push argument 0
+                return
+            label N_GE_2               // if n >= 2 returns fib(n - 2) + fib(n - 1)
+                push argument 0
+                push constant 2
+                sub
+                call Main.fibonacci 1  // computes fib(n - 2)
+                push argument 0
+                push constant 1
+                sub
+                call Main.fibonacci 1  // computes fib(n - 1)
+                add                    // returns fib(n - 1) + fib(n - 2)
+                return
+        """);
+    }
+
     private void checkLabel(VmParser parser, VmCommand command, String label) {
         assertTrue(parser.advance());
         assertEquals(command, parser.command());
         assertEquals(label, parser.label());
         assertNull(parser.segment());
-        assertEquals(-1, parser.index());
+        assertEquals(-1, parser.number());
+    }
+
+    private void checkFunction(VmParser parser, String name, int variableCount) {
+        assertTrue(parser.advance());
+        assertEquals(VmCommand.FUNCTION, parser.command());
+        assertEquals(name, parser.label());
+        assertNull(parser.segment());
+        assertEquals(variableCount, parser.number());
+    }
+
+    private void checkCall(VmParser parser, String name, int argumentCount) {
+        assertTrue(parser.advance());
+        assertEquals(VmCommand.CALL, parser.command());
+        assertEquals(name, parser.label());
+        assertNull(parser.segment());
+        assertEquals(argumentCount, parser.number());
     }
 
     private void checkCommand(VmParser parser, VmCommand command) {
@@ -226,7 +289,7 @@ public class VmParserTest {
         assertEquals(command, parser.command());
         assertNull(parser.label());
         assertNull(parser.segment());
-        assertEquals(-1, parser.index());
+        assertEquals(-1, parser.number());
     }
 
     private void checkPushPop(VmParser parser, VmCommand command, VmSegment segment, int index) {
@@ -237,7 +300,7 @@ public class VmParserTest {
         } else {
             assertNull(parser.segment());
         }
-        assertEquals(index, parser.index());
+        assertEquals(index, parser.number());
         assertNull(parser.label());
     }
 
@@ -245,7 +308,7 @@ public class VmParserTest {
         assertFalse(parser.advance());
         assertNull(parser.command());
         assertNull(parser.segment());
-        assertEquals(-1, parser.index());
+        assertEquals(-1, parser.number());
         assertNull(parser.label());
     }
 }

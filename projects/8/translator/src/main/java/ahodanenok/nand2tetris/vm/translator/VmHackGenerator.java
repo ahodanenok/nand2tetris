@@ -5,7 +5,8 @@ import java.io.Writer;
 
 public class VmHackGenerator {
 
-    private String function = "Main.main";
+    private String file = "Main";
+    private String function = "main";
     private int nextLabelIdx = 0;
 
     public void init(Writer out) throws IOException {
@@ -13,7 +14,12 @@ public class VmHackGenerator {
         out.write("D=A\n");
         out.write(at("SP"));
         out.write("M=D\n");
-        //call("Sys.init");
+        call("Sys.init", 0, out);
+
+        String loopLabel = labelName("LOOP");
+        out.write(label(loopLabel));
+        out.write(at(loopLabel));
+        out.write("0;JMP\n");
     }
 
     public void label(String name, Writer out) throws IOException {
@@ -29,6 +35,124 @@ public class VmHackGenerator {
         popD(out);
         out.write(at(labelName(label)));
         out.write("D;JNE\n");
+    }
+
+    public void function(String name, int variableCount, Writer out) throws IOException {
+        String[] parts = name.split("\\.");
+        file = parts[0];
+        function = parts[1];
+
+        out.write(label(name));
+        out.write("D=0\n");
+        for (int i = 0; i < variableCount; i++) {
+            pushD(out);
+        }
+    }
+
+    public void call(String name, int argumentCount, Writer out) throws IOException {
+        String returnLabel = labelName();
+
+        // push return address
+        out.write(at(returnLabel));
+        out.write("D=A\n");
+        pushD(out);
+        // push LCL
+        out.write(at("LCL"));
+        out.write("D=M\n");
+        pushD(out);
+        // push ARG
+        out.write(at("ARG"));
+        out.write("D=M\n");
+        pushD(out);
+        // push THIS
+        out.write(at("THIS"));
+        out.write("D=M\n");
+        pushD(out);
+        // push THAT
+        out.write(at("THAT"));
+        out.write("D=M\n");
+        pushD(out);
+
+        // ARG = SP-5-argumentCount
+        out.write(at("5"));
+        out.write("D=A\n");
+        out.write(at("SP"));
+        out.write("D=M-D\n");
+        out.write(at(argumentCount + ""));
+        out.write("D=D-A\n");
+        out.write(at("ARG"));
+        out.write("M=D\n");
+
+        // LCL = SP
+        out.write(at("SP"));
+        out.write("D=M\n");
+        out.write(at("LCL"));
+        out.write("M=D\n");
+
+        // jump to the function
+        out.write(at(name));
+        out.write("0;JMP\n");
+        out.write(label(returnLabel));
+    }
+
+    public void ret(Writer out) throws IOException {
+        // save return address
+        out.write(at("5"));
+        out.write("D=A\n");
+        out.write(at("LCL"));
+        out.write("A=M-D\n");
+        out.write("D=M\n");
+        out.write(at("R14"));
+        out.write("M=D\n");
+        // reposition return value
+        popD(out);
+        out.write(at("ARG"));
+        out.write("A=M\n");
+        out.write("M=D\n");
+        // reposition stack
+        out.write(at("ARG"));
+        out.write("D=M+1\n");
+        out.write(at("SP"));
+        out.write("M=D\n");
+
+        out.write(at("LCL"));
+        out.write("D=M\n");
+        out.write(at("R15"));
+        out.write("M=D\n");
+        // restore THAT
+        out.write("A=D-1\n");
+        out.write("D=M\n");
+        out.write(at("THAT"));
+        out.write("M=D\n");
+        // restore THIS
+        out.write(at("2"));
+        out.write("D=A\n");
+        out.write(at("R15"));
+        out.write("A=M-D\n");
+        out.write("D=M\n");
+        out.write(at("THIS"));
+        out.write("M=D\n");
+        // restore ARG
+        out.write(at("3"));
+        out.write("D=A\n");
+        out.write(at("R15"));
+        out.write("A=M-D\n");
+        out.write("D=M\n");
+        out.write(at("ARG"));
+        out.write("M=D\n");
+        // restore LCL
+        out.write(at("4"));
+        out.write("D=A\n");
+        out.write(at("R15"));
+        out.write("A=M-D\n");
+        out.write("D=M\n");
+        out.write(at("LCL"));
+        out.write("M=D\n");
+
+        // return
+        out.write(at("R14"));
+        out.write("A=M\n");
+        out.write("0;JMP\n");
     }
 
     public void push(VmSegment segment, int index, Writer out) throws IOException {
@@ -60,7 +184,8 @@ public class VmHackGenerator {
                 }
             }
             case STATIC -> {
-                segmentReadD("16", index, out);
+                out.write(at(file + "." + index));
+                out.write("D=M\n");
                 pushD(out);
             }
             case TEMP -> {
@@ -127,9 +252,9 @@ public class VmHackGenerator {
                 }
             }
              case STATIC -> {
-                segmentAddress("16", index, "R13", out);
                 popD(out);
-                segmentWriteD("R13", out);
+                out.write(at(file + "." + index));
+                out.write("M=D\n");
             }
             case TEMP -> {
                 out.write(at(index + ""));
@@ -324,7 +449,7 @@ public class VmHackGenerator {
     }
 
     private String labelName(String localName) {
-        return function + "$" + localName;
+        return file + "." + function + "$" + localName;
     }
 
     private String at(String address) {
