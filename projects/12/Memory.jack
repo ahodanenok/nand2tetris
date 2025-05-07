@@ -6,28 +6,82 @@
  * This library provides two services: direct access to the computer's main
  * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
  * consists of 32,768 words, each holding a 16-bit binary number.
- */ 
+ */
 class Memory {
+
+    static Array m;
+    static Array freeList;
 
     /** Initializes the class. */
     function void init() {
+        let m = 0;
+        let freeList = 2048;
+        let freeList[0] = 1;
+        let freeList[1] = 16384 - freeList - 1;
+        let freeList[2] = 0;
+        return;
     }
 
     /** Returns the RAM value at the given address. */
     function int peek(int address) {
+        return m[address];
     }
 
     /** Sets the RAM value at the given address to the given value. */
     function void poke(int address, int value) {
+        let m[address] = value;
+        return;
     }
 
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
+        var int block, prev;
+
+        if (freeList[0] = 0) {
+            return -1;
+        }
+
+        let block = freeList[0];
+        let prev = -1;
+        while (true) {
+            if (freeList[block] = size) {
+                if (prev = -1) {
+                    let freeList[0] = freeList[block + 1];
+                } else {
+                    let freeList[prev + 1] = freeList[block + 1];
+                }
+
+                return block + 1;
+            }
+            if (~(freeList[block] < size + 1)) {
+                let freeList[block] = freeList[block] - size - 1;
+                let block = block + 1 + freeList[block];
+                let freeList[block] = size;
+
+                return block + 1;
+            }
+
+            if (freeList[block + 1] = 0) {
+                return -1;
+            }
+
+            let prev = block;
+            let block = freeList[block + 1];
+        }
+
+        return -1;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
-    }    
+        var int first;
+
+        let first = freeList[0];
+        let freeList[0] = o - 1;
+        let o[0] = first;
+
+        return;
+    }
 }
